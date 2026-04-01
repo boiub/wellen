@@ -23,6 +23,7 @@ pub enum FileFormat {
     Vcd,
     Fst,
     Ghw,
+    Memory,
     Unknown,
 }
 #[derive(Debug, Copy, Clone)]
