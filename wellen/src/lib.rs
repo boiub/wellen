@@ -63,6 +63,7 @@ pub use hierarchy::{
     Timescale, TimescaleUnit, Var, VarDirection, VarIndex, VarRef, VarType,
 };
 pub use signals::{Real, Signal, SignalSource, SignalValue, Time, TimeTableIdx};
+pub use wavemem::Encoder;
 
 #[cfg(feature = "benchmark")]
 pub use wavemem::check_states_pub;
