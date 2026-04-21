@@ -19,10 +19,11 @@ use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::io::Read;
 use std::num::NonZeroU32;
+use std::sync::Arc;
 
 /// Holds queryable waveform data. Use the `Encoder` to generate.
 pub struct Reader {
-    blocks: Vec<Block>,
+    blocks: Vec<Arc<Block>>,
 }
 
 impl SignalSourceImplementation for Reader {
@@ -463,7 +464,7 @@ pub struct Encoder {
     /// Tracks if we are skipping a timestep because it came with an invalid time.
     skipping_time_step: bool,
     /// Finished blocks
-    blocks: Vec<Block>,
+    blocks: Vec<Arc<Block>>,
 }
 
 /// Indexes the time table inside a block.
@@ -567,7 +568,19 @@ impl Encoder {
         let time_table = Self::combine_time_tables(&reader.blocks);
         (SignalSource::new(Box::new(reader)), time_table)
     }
-    fn combine_time_tables(blocks: &[Block]) -> TimeTable {
+
+    pub fn snapshot(&mut self) -> (SignalSource, TimeTable) {
+        // ensure that we have no open blocks
+        self.finish_block();
+        // create a new reader with the blocks that we have
+        let reader = Reader {
+            blocks: self.blocks.clone(), // clone the arc, not the block data
+        };
+        let time_table = Self::combine_time_tables(&reader.blocks);
+        (SignalSource::new(Box::new(reader)), time_table)
+    }
+
+    fn combine_time_tables(blocks: &[Arc<Block>]) -> TimeTable {
         // create a combined time table from all blocks
         let max_len = blocks.iter().map(|b| b.time_table.len()).sum::<usize>();
         let mut table = Vec::with_capacity(max_len);
@@ -653,7 +666,7 @@ impl Encoder {
             offsets,
             data,
         };
-        self.blocks.push(block);
+        self.blocks.push(Arc::new(block));
         self.has_new_data = false;
     }
 }
