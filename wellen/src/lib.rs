@@ -64,6 +64,7 @@ pub use hierarchy::{
 };
 pub use signals::{Real, Signal, SignalSource, SignalValue, Time, TimeTableIdx};
 pub use wavemem::Encoder;
+pub use vcd::parse_name;
 
 #[cfg(feature = "benchmark")]
 pub use wavemem::check_states_pub;
